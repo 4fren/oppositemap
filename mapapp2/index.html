@@ -33,7 +33,7 @@
     #getPosition {
         position: absolute;
         z-index: 1001;
-        top: 80%;
+        top: 83%;
         left: 80%;
         height: 10%;
         width: 20%;
@@ -64,8 +64,30 @@
 
     #div_lon_right {
     }
+
+    #footer {
+        border-top: solid 1px lightgray;
+        bottom: 0;
+        width: 100%;
+        background-color: white;
+    }
+
+    #footer ul {
+        text-align: center;
+        padding: 0;
+        margin: 0;
+    }
+
+    #footer ul li {
+        display: inline;
+    }
+
+    #footer p {
+        text-align: center;
+    }
 </style>
-<body>
+
+<body style="height: 96%; margin: 0;">
     <div id="div_map">
         <div id="div_map1">
             <div id="map1"></div>
@@ -83,6 +105,16 @@
         </div>
     </div>
     <button id="getPosition" type="button" onclick="clear(); getPosition()">現在地</button>
+    
+    <footer id="footer">
+        <ul>
+            <li><a href="index.html">Main Content</a></li>
+            <li><a>|</a></li>
+            <li><a href="operatorAndContactInfo.html">運営者情報 / お問い合わせ</a></li>
+            <li><a>|</a></li>
+            <li><a href="privacyPolicyAndDisclaimer.html">プライバシーポリシー・免責事項</a></li>
+        </ul>
+    </footer>
 </body>
 <script>
     // 地図を作成する
@@ -122,7 +154,6 @@
     // リサイズ後の処理
 
     function onResize() {
-        console.log(window.innerWidth)
         if (window.innerWidth <= window.innerHeight) {
             document.getElementById("div_map").style.display = "block";
             document.getElementById("div_map1").style.height = "50%";
@@ -139,21 +170,6 @@
         };
     };
 
-    // 地図の中心座標とズームレベルを設定する
-    mymap1.setView([35.5929373, 138.0425258], 3);
-
-    // 地図の中心座標とズームレベルを設定する
-    mymap2.setView([35.5929373, 138.0425258], 3);
-    
-
-    // Geolocation APIに対応している
-    if (navigator.geolocation) {
-        //alert("この端末では位置情報が取得できます");
-    // Geolocation APIに対応していない
-    } else {
-        alert("この端末では位置情報が取得できません");
-    }
-
     var flag_setView1 = 1;
     var flag_setView2 = 1;
 
@@ -163,12 +179,44 @@
     var currentLocation;
 
     var lat;
-    var lon;
+    var lng;
     var oppositeLat;
     var oppositeLon;
 
     var marker1;
     var marker2;
+
+    var elat;
+    var elng;
+
+    function initialSetting() {
+        lat = 35.5929373;
+        lng = 138.0425258;
+        oppositeLat = -lat;
+        oppositeLon = setOppositeLng(lng);
+
+        setMarker(lat, lng, oppositeLat, oppositeLon);
+
+        setMarkerDragEvent();
+
+        // 地図の中心座標とズームレベルを設定する
+        mymap1.setView([lat, lng], 3);
+
+        // 地図の中心座標とズームレベルを設定する
+        mymap2.setView([oppositeLat, oppositeLon], 3);
+
+        setInfo(lat, lng, oppositeLat, oppositeLon);
+    };
+
+    initialSetting();
+
+    // Geolocation APIに対応している
+    if (navigator.geolocation) {
+        //alert("この端末では位置情報が取得できます");
+    // Geolocation APIに対応していない
+    } else {
+        alert("この端末では位置情報が取得できません");
+    }
     
     function getPosition() {
         flag_setView1 = 1;
@@ -196,21 +244,16 @@
         geo_text += "取得時刻:" + date.toLocaleString() + "\n";
         geo_text += "取得回数:" + (++num) + "\n";
 
-        console.log(geo_text);
-
         lat = position.coords.latitude;
-        lon = position.coords.longitude;
+        lng = position.coords.longitude;
         oppositeLat = -lat;
-        oppositeLon = 180 - lon;
+        oppositeLon = setOppositeLng(lng);
 
-        document.getElementById("div_lat_left").innerText = "緯度: " + lat;
-        document.getElementById("div_lon_left").innerText = "経度: " + lon;
-        document.getElementById("div_lat_right").innerText = "緯度: " + oppositeLat;
-        document.getElementById("div_lon_right").innerText = "経度: " + oppositeLon;
+        setInfo(lat, lng, oppositeLat, oppositeLon);
 
         if (flag_setView1 == 1) {
             // 地図の中心座標とズームレベルを設定する
-            mymap1.setView([lat, lon], currentZoomLevel1);
+            mymap1.setView([lat, lng], currentZoomLevel1);
         };
 
         if (flag_setView2 == 1) {
@@ -228,14 +271,16 @@
         };
         
         // マーカーを作成する
-        marker1 = L.marker([lat, lon]).addTo(mymap1);
+        marker1 = L.marker([lat, lng], {draggable: true, autoPan: true}).addTo(mymap1);
         // クリックした際にポップアップメッセージを表示する
-        //marker1.bindPopup(lat + ", " + lon + ", " + currentZoomLevel1);
+        //marker1.bindPopup(lat + ", " + lng + ", " + currentZoomLevel1);
 
         // マーカーを作成する
-        marker2 = L.marker([oppositeLat, oppositeLon]).addTo(mymap2);
+        marker2 = L.marker([oppositeLat, oppositeLon], {draggable: true, autoPan: true}).addTo(mymap2);
         // クリックした際にポップアップメッセージを表示する
         //marker2.bindPopup(oppositeLat + ", " + oppositeLon + ", " + currentZoomLevel2);
+
+        setMarkerDragEvent();
     }
 
     getPosition();
@@ -253,4 +298,103 @@
         flag_setView2 = 0;
         currentZoomLevel2 = mymap2.getZoom();
     });
+
+    function setOppositeLng(Lng) {
+        if (lng > 0) {
+            return lng - 180;
+        }else if (lng < 0) {
+            return 180 - (-lng);
+        }else{
+            return 0;
+        };
+    };
+
+    function setMarker(Lat, Lng, oppoLat, oppoLng) {
+        marker1 = L.marker([Lat, Lng], {draggable: true, autoPan: true}).addTo(mymap1);
+        marker2 = L.marker([oppoLat, oppoLng], {draggable: true, autoPan: true}).addTo(mymap2);
+    };
+
+    function setInfo(Lat, Lng, oppoLat, oppoLng) {
+        document.getElementById("div_lat_left").innerText = "緯度: " + lat;
+        document.getElementById("div_lon_left").innerText = "経度: " + lng;
+        document.getElementById("div_lat_right").innerText = "緯度: " + oppositeLat;
+        document.getElementById("div_lon_right").innerText = "経度: " + oppositeLon;
+    };
+
+    function setMarkerDragEvent() {
+        marker1.on('dragend', function(e) {
+            //経緯度表示
+            //alert(e.target.getLatLng());
+            lat = e.target.getLatLng().lat;
+            lng = e.target.getLatLng().lng;
+            oppositeLat = -lat;
+            oppositeLon = setOppositeLng(lng);
+
+            flag_setView1 = 0;
+            flag_setView2 = 0;
+            currentZoomLevel1 = mymap1.getZoom();
+            currentZoomLevel2 = mymap2.getZoom();
+            clear();
+
+            mymap1.removeLayer(marker1);
+            marker1 = null;
+            mymap2.removeLayer(marker2);
+            marker2 = null;
+
+            setMarker(lat, lng, oppositeLat, oppositeLon);
+
+            setInfo(lat, lng, oppositeLat, oppositeLon);
+
+            setMarkerDragEvent();
+        } );
+
+        marker2.on('dragend', function(e) {
+            //経緯度表示
+            //alert(e.target.getLatLng());
+            lat = e.target.getLatLng().lat;
+            lng = e.target.getLatLng().lng;
+            oppositeLat = -lat;
+            oppositeLon = setOppositeLng(lng);
+
+            flag_setView1 = 0;
+            flag_setView2 = 0;
+            currentZoomLevel1 = mymap1.getZoom();
+            currentZoomLevel2 = mymap2.getZoom();
+            clear();
+
+            mymap1.removeLayer(marker1);
+            marker1 = null;
+            mymap2.removeLayer(marker2);
+            marker2 = null;
+
+            setMarker(oppositeLat, oppositeLon, lat, lng);
+
+            document.getElementById("div_lat_left").innerText = "緯度: " + oppositeLat;
+            document.getElementById("div_lon_left").innerText = "経度: " + oppositeLon;
+            document.getElementById("div_lat_right").innerText = "緯度: " + lat;
+            document.getElementById("div_lon_right").innerText = "経度: " + lng;
+
+            setInfo(oppositeLat, oppositeLon, lat, lng);
+
+            setMarkerDragEvent();
+        } );
+    };
+
+    function setMapClickEvent() {
+        mymap1.on('click', function(e) {
+            //クリック位置経緯度取得
+            elat = e.latlng.lat;
+            elng = e.latlng.lng;
+            //経緯度表示
+            alert("lat: " + elat + ", lng: " + elng);
+        } );
+
+        mymap2.on('click', function(e) {
+            //クリック位置経緯度取得
+            elat = e.latlng.lat;
+            elng = e.latlng.lng;
+            //経緯度表示
+            alert("lat: " + elat + ", lng: " + elng);
+        } );
+    };
 </script>
