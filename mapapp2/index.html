@@ -1,4 +1,4 @@
-<head>
+<head lang="ja">
     <title>さかさマップ</title>
     <meta charset="UTF-8">
     <meta content="あなたがいる場所の裏側がどこなのかを示します。" name="description">
@@ -325,6 +325,16 @@
     };
 
     function setMarkerDragEvent() {
+        marker1.on('dragstart', function(e) {
+            clear();
+            console.log(2)
+        });
+
+        marker2.on('dragstart', function(e) {
+            clear();
+            console.log(2)
+        });
+
         marker1.on('dragend', function(e) {
             //経緯度表示
             //alert(e.target.getLatLng());
@@ -337,7 +347,6 @@
             flag_setView2 = 0;
             currentZoomLevel1 = mymap1.getZoom();
             currentZoomLevel2 = mymap2.getZoom();
-            clear();
 
             mymap1.removeLayer(marker1);
             marker1 = null;
@@ -363,7 +372,6 @@
             flag_setView2 = 0;
             currentZoomLevel1 = mymap1.getZoom();
             currentZoomLevel2 = mymap2.getZoom();
-            clear();
 
             mymap1.removeLayer(marker1);
             marker1 = null;
