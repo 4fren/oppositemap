@@ -119,6 +119,7 @@
         </ul>
     </footer>
 </body>
+
 <script>
     // 地図を作成する
     var mymap1 = L.map('map1');
@@ -303,10 +304,10 @@
     });
 
     function setOppositeLng(Lng) {
-        if (lng > 0) {
-            return lng - 180;
-        }else if (lng < 0) {
-            return 180 - (-lng);
+        if(Lng > 0) {
+            return Lng - 180;
+        }else if (Lng < 0) {
+            return 180 - (-Lng);
         }else{
             return 0;
         };
@@ -318,8 +319,8 @@
     };
 
     function setInfo(Lat, Lng, oppoLat, oppoLng) {
-        document.getElementById("div_lat_left").innerText = "緯度: " + lat;
-        document.getElementById("div_lon_left").innerText = "経度: " + lng;
+        document.getElementById("div_lat_left").innerText = "緯度: " + Lat;
+        document.getElementById("div_lon_left").innerText = "経度: " + Lng;
         document.getElementById("div_lat_right").innerText = "緯度: " + oppositeLat;
         document.getElementById("div_lon_right").innerText = "経度: " + oppositeLon;
     };
@@ -338,6 +339,7 @@
             //alert(e.target.getLatLng());
             lat = e.target.getLatLng().lat;
             lng = e.target.getLatLng().lng;
+            lng = lng > 180 ? lng - 360 * (Math.floor(lng / 180)) : lng < -180 ? lng + 180 * -(Math.floor(lng / 180)) : lng;
             oppositeLat = -lat;
             oppositeLon = setOppositeLng(lng);
 
@@ -353,6 +355,9 @@
 
             setMarker(lat, lng, oppositeLat, oppositeLon);
 
+            mymap1.setView([lat, lng], currentZoomLevel1);
+            mymap2.setView([oppositeLat, oppositeLon], currentZoomLevel2);
+
             setInfo(lat, lng, oppositeLat, oppositeLon);
 
             setMarkerDragEvent();
@@ -363,6 +368,7 @@
             //alert(e.target.getLatLng());
             lat = e.target.getLatLng().lat;
             lng = e.target.getLatLng().lng;
+            lng = lng > 180 ? lng - 360 * (Math.floor(lng / 180)) : lng < -180 ? lng + 180 * -(Math.floor(lng / 180)) : lng;
             oppositeLat = -lat;
             oppositeLon = setOppositeLng(lng);
 
@@ -378,10 +384,8 @@
 
             setMarker(oppositeLat, oppositeLon, lat, lng);
 
-            document.getElementById("div_lat_left").innerText = "緯度: " + oppositeLat;
-            document.getElementById("div_lon_left").innerText = "経度: " + oppositeLon;
-            document.getElementById("div_lat_right").innerText = "緯度: " + lat;
-            document.getElementById("div_lon_right").innerText = "経度: " + lng;
+            mymap1.setView([lat, lng], currentZoomLevel1);
+            mymap2.setView([oppositeLat, oppositeLon], currentZoomLevel2);
 
             setInfo(oppositeLat, oppositeLon, lat, lng);
 
